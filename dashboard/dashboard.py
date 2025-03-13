@@ -87,6 +87,30 @@ fig, ax = plt.subplots()
 sns.boxplot(x="weekend", y="PM2.5", data=data_filtered, ax=ax)
 st.pyplot(fig)
 
+# Analisis Statistik untuk Interpretasi
+pm25_weekday = data_filtered[data_filtered["weekend"] == "Weekday"]["PM2.5"].dropna()
+pm25_weekend = data_filtered[data_filtered["weekend"] == "Weekend"]["PM2.5"].dropna()
+
+median_weekday = pm25_weekday.median()
+median_weekend = pm25_weekend.median()
+
+iqr_weekday = pm25_weekday.quantile(0.75) - pm25_weekday.quantile(0.25)
+iqr_weekend = pm25_weekend.quantile(0.75) - pm25_weekend.quantile(0.25)
+
+# Menentukan Interpretasi
+interpretation = ""
+if median_weekday > median_weekend:
+    interpretation = "Rata-rata polusi PM2.5 lebih tinggi pada hari kerja dibandingkan akhir pekan. Hal ini bisa disebabkan oleh aktivitas industri dan transportasi yang lebih banyak pada weekday."
+else:
+    interpretation = "Rata-rata polusi PM2.5 lebih tinggi pada akhir pekan dibandingkan hari kerja. Kemungkinan disebabkan oleh peningkatan aktivitas sosial dan pariwisata."
+
+st.write(f"**Interpretasi:** {interpretation}")
+st.write(f"**Median PM2.5 Weekday:** {median_weekday:.2f}")
+st.write(f"**Median PM2.5 Weekend:** {median_weekend:.2f}")
+st.write(f"**IQR Weekday:** {iqr_weekday:.2f}")
+st.write(f"**IQR Weekend:** {iqr_weekend:.2f}")
+
+# korelasi 
 st.subheader("Korelasi PM₂.₅ dengan Faktor Cuaca")
 
 # Bersihkan format angka dengan benar
@@ -105,3 +129,24 @@ sns.heatmap(data_weather.corr(), annot=True, cmap="coolwarm", fmt=".2f", linewid
 
 # Tampilkan heatmap di Streamlit
 st.pyplot(fig)
+
+# interpretasi
+# Cari faktor cuaca dengan korelasi tertinggi dan terendah
+highest_corr = correlation.index[1]  # Indeks ke-1 karena indeks 0 adalah PM2.5 itu sendiri
+highest_value = correlation.iloc[1]
+lowest_corr = correlation.index[-1]
+lowest_value = correlation.iloc[-1]
+
+# Menentukan Interpretasi
+interpretation_corr = (
+    f"Korelasi tertinggi antara PM2.5 dan {highest_corr} (r={highest_value:.2f}) "
+    f"menunjukkan bahwa faktor ini memiliki dampak paling besar terhadap polusi udara."
+)
+interpretation_corr += (
+    f" Sementara itu, korelasi terendah adalah dengan {lowest_corr} (r={lowest_value:.2f}), "
+    "menunjukkan bahwa faktor ini memiliki pengaruh yang kecil terhadap tingkat PM2.5."
+)
+
+st.write("**Interpretasi Korelasi:**")
+st.write(interpretation_corr)
+
