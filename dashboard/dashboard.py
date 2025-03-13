@@ -113,7 +113,8 @@ else:
     )
 
 
-st.write(f"**Interpretasi:** {interpretation}")
+st.write("**Interpretasi**") 
+st.write(interpretation)
 st.write(f"**Median PM2.5 Weekday:** {median_weekday:.2f}")
 st.write(f"**Median PM2.5 Weekend:** {median_weekend:.2f}")
 st.write(f"**IQR Weekday:** {iqr_weekday:.2f}")
