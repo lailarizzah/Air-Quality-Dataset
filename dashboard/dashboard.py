@@ -87,30 +87,36 @@ fig, ax = plt.subplots()
 sns.boxplot(x="weekend", y="PM2.5", data=data_filtered, ax=ax)
 st.pyplot(fig)
 
-# Analisis Statistik untuk Interpretasi
-pm25_weekday = data_filtered[data_filtered["weekend"] == "Weekday"]["PM2.5"].dropna()
-pm25_weekend = data_filtered[data_filtered["weekend"] == "Weekend"]["PM2.5"].dropna()
+# Hitung statistik PM2.5 untuk Weekday dan Weekend
+pm25_weekday = data_filtered[data_filtered["weekend"] == "Weekday"]["PM2.5"].median()
+pm25_weekend = data_filtered[data_filtered["weekend"] == "Weekend"]["PM2.5"].median()
 
-median_weekday = pm25_weekday.median()
-median_weekend = pm25_weekend.median()
+# Hitung rata-rata faktor cuaca pada Weekday dan Weekend
+weather_factors = ["TEMP", "PRES", "WSPM", "RAIN"]
+weather_mean_weekday = data_filtered[data_filtered["weekend"] == "Weekday"][weather_factors].mean()
+weather_mean_weekend = data_filtered[data_filtered["weekend"] == "Weekend"][weather_factors].mean()
 
-iqr_weekday = pm25_weekday.quantile(0.75) - pm25_weekday.quantile(0.25)
-iqr_weekend = pm25_weekend.quantile(0.75) - pm25_weekend.quantile(0.25)
+# Tentukan faktor yang paling berbeda antara Weekday dan Weekend
+diff_factors = (weather_mean_weekday - weather_mean_weekend).abs()
+most_diff_factor = diff_factors.idxmax()
+most_diff_value = diff_factors.max()
 
-# Menentukan Interpretasi
-interpretation = ""
-if median_weekday > median_weekend:
-    interpretation = "Rata-rata polusi PM2.5 lebih tinggi pada hari kerja dibandingkan akhir pekan. Hal ini bisa disebabkan oleh aktivitas industri dan transportasi yang lebih banyak pada weekday."
-else:
-    interpretation = "Rata-rata polusi PM2.5 lebih tinggi pada akhir pekan dibandingkan hari kerja. Kemungkinan disebabkan oleh peningkatan aktivitas sosial dan pariwisata."
+# Interpretasi
+interpretation_boxplot = (
+    f"Median PM2.5 pada hari kerja (Weekday) adalah {pm25_weekday:.2f}, "
+    f"sedangkan pada akhir pekan (Weekend) adalah {pm25_weekend:.2f}. "
+)
 
-st.write(f"**Interpretasi:** {interpretation}")
-st.write(f"**Median PM2.5 Weekday:** {median_weekday:.2f}")
-st.write(f"**Median PM2.5 Weekend:** {median_weekend:.2f}")
-st.write(f"**IQR Weekday:** {iqr_weekday:.2f}")
-st.write(f"**IQR Weekend:** {iqr_weekend:.2f}")
+interpretation_boxplot += (
+    f"Faktor cuaca yang paling berbeda antara Weekday dan Weekend adalah {most_diff_factor} "
+    f"dengan selisih {most_diff_value:.2f}. Ini menunjukkan bahwa perubahan {most_diff_factor} "
+    "mungkin memiliki pengaruh terhadap kadar polusi udara."
+)
 
-# korelasi 
+st.write("**Interpretasi**")
+st.write(interpretation_boxplot)
+
+# Visualisasi Korelasi PM₂.₅ dengan Faktor Cuaca
 st.subheader("Korelasi PM₂.₅ dengan Faktor Cuaca")
 
 # Bersihkan format angka dengan benar
@@ -130,12 +136,14 @@ sns.heatmap(data_weather.corr(), annot=True, cmap="coolwarm", fmt=".2f", linewid
 # Tampilkan heatmap di Streamlit
 st.pyplot(fig)
 
-# interpretasi
+# Ambil korelasi PM2.5 dengan faktor cuaca lainnya, kecuali dirinya sendiri
+correlation_pm25 = correlation.drop("PM2.5")
+
 # Cari faktor cuaca dengan korelasi tertinggi dan terendah
-highest_corr = correlation.index[1]  # Indeks ke-1 karena indeks 0 adalah PM2.5 itu sendiri
-highest_value = correlation.iloc[1]
-lowest_corr = correlation.index[-1]
-lowest_value = correlation.iloc[-1]
+highest_corr = correlation_pm25.idxmax()
+highest_value = correlation_pm25.max()
+lowest_corr = correlation_pm25.idxmin()
+lowest_value = correlation_pm25.min()
 
 # Menentukan Interpretasi
 interpretation_corr = (
@@ -147,6 +155,6 @@ interpretation_corr += (
     "menunjukkan bahwa faktor ini memiliki pengaruh yang kecil terhadap tingkat PM2.5."
 )
 
-st.write("**Interpretasi Korelasi:**")
+st.write("**Interpretasi**")
 st.write(interpretation_corr)
 
