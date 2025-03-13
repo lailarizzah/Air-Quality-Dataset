@@ -92,7 +92,13 @@ pm25_weekday = data_filtered[data_filtered["weekend"] == "Weekday"]["PM2.5"].med
 pm25_weekend = data_filtered[data_filtered["weekend"] == "Weekend"]["PM2.5"].median()
 
 # Hitung rata-rata faktor cuaca pada Weekday dan Weekend
+# Pastikan data dalam weather_factors numerik
 weather_factors = ["TEMP", "PRES", "WSPM", "RAIN"]
+
+# Konversi ke numerik dan hilangkan nilai non-numerik
+data_filtered[weather_factors] = data_filtered[weather_factors].apply(pd.to_numeric, errors="coerce")
+
+# Hitung rata-rata faktor cuaca untuk Weekday dan Weekend
 weather_mean_weekday = data_filtered[data_filtered["weekend"] == "Weekday"][weather_factors].mean()
 weather_mean_weekend = data_filtered[data_filtered["weekend"] == "Weekend"][weather_factors].mean()
 
@@ -113,7 +119,7 @@ interpretation_boxplot += (
     "mungkin memiliki pengaruh terhadap kadar polusi udara."
 )
 
-st.write("**Interpretasi**")
+st.write("**Interpretasi Boxplot:**")
 st.write(interpretation_boxplot)
 
 # Visualisasi Korelasi PM₂.₅ dengan Faktor Cuaca
