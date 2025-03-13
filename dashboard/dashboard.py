@@ -91,35 +91,36 @@ st.pyplot(fig)
 pm25_weekday = data_filtered[data_filtered["weekend"] == "Weekday"]["PM2.5"].median()
 pm25_weekend = data_filtered[data_filtered["weekend"] == "Weekend"]["PM2.5"].median()
 
-# Hitung rata-rata faktor cuaca pada Weekday dan Weekend
-# Pastikan data dalam weather_factors numerik
-weather_factors = ["TEMP", "PRES", "WSPM", "RAIN"]
+# Cek faktor cuaca yang paling berpengaruh dari korelasi
+correlation_matrix = data_filtered[["PM2.5", "TEMP", "PRES", "WSPM", "RAIN"]].corr()
+most_correlated_factor = correlation_matrix["PM2.5"].drop("PM2.5").idxmax()
+most_negatively_correlated_factor = correlation_matrix["PM2.5"].drop("PM2.5").idxmin()
 
-# Konversi ke numerik dan hilangkan nilai non-numerik
-data_filtered[weather_factors] = data_filtered[weather_factors].apply(pd.to_numeric, errors="coerce")
+# Ambil data rata-rata faktor cuaca pada weekday dan weekend
+weather_mean_weekday = data_filtered[data_filtered["weekend"] == "Weekday"][most_correlated_factor].mean()
+weather_mean_weekend = data_filtered[data_filtered["weekend"] == "Weekend"][most_correlated_factor].mean()
 
-# Hitung rata-rata faktor cuaca untuk Weekday dan Weekend
-weather_mean_weekday = data_filtered[data_filtered["weekend"] == "Weekday"][weather_factors].mean()
-weather_mean_weekend = data_filtered[data_filtered["weekend"] == "Weekend"][weather_factors].mean()
+weather_mean_neg_weekday = data_filtered[data_filtered["weekend"] == "Weekday"][most_negatively_correlated_factor].mean()
+weather_mean_neg_weekend = data_filtered[data_filtered["weekend"] == "Weekend"][most_negatively_correlated_factor].mean()
 
-# Tentukan faktor yang paling berbeda antara Weekday dan Weekend
-diff_factors = (weather_mean_weekday - weather_mean_weekend).abs()
-most_diff_factor = diff_factors.idxmax()
-most_diff_value = diff_factors.max()
-
-# Interpretasi
+# Interpretasi berdasarkan korelasi dan boxplot
 interpretation_boxplot = (
     f"Median PM2.5 pada hari kerja (Weekday) adalah {pm25_weekday:.2f}, "
     f"sedangkan pada akhir pekan (Weekend) adalah {pm25_weekend:.2f}. "
+    "Berdasarkan korelasi, faktor cuaca yang paling berpengaruh terhadap PM2.5 adalah:\n"
+    f"✅ {most_correlated_factor} dengan korelasi {correlation_matrix.loc['PM2.5', most_correlated_factor]:.2f}.\n"
+    f"✅ {most_negatively_correlated_factor} dengan korelasi {correlation_matrix.loc['PM2.5', most_negatively_correlated_factor]:.2f}.\n\n"
 )
 
 interpretation_boxplot += (
-    f"Faktor cuaca yang paling berbeda antara Weekday dan Weekend adalah {most_diff_factor} "
-    f"dengan selisih {most_diff_value:.2f}. Ini menunjukkan bahwa perubahan {most_diff_factor} "
-    "mungkin memiliki pengaruh terhadap kadar polusi udara."
+    f"Rata-rata {most_correlated_factor} pada Weekday adalah {weather_mean_weekday:.2f}, "
+    f"sedangkan pada Weekend adalah {weather_mean_weekend:.2f}. "
+    f"Rata-rata {most_negatively_correlated_factor} pada Weekday adalah {weather_mean_neg_weekday:.2f}, "
+    f"sedangkan pada Weekend adalah {weather_mean_neg_weekend:.2f}. "
+    "Hasil ini menunjukkan bahwa perubahan faktor cuaca ini kemungkinan berkontribusi terhadap perbedaan kadar polusi udara antara Weekday dan Weekend."
 )
 
-st.write("**Interpretasi Boxplot:**")
+st.write("**Interpretasi**")
 st.write(interpretation_boxplot)
 
 # Visualisasi Korelasi PM₂.₅ dengan Faktor Cuaca
