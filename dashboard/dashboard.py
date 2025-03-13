@@ -87,48 +87,37 @@ fig, ax = plt.subplots()
 sns.boxplot(x="weekend", y="PM2.5", data=data_filtered, ax=ax)
 st.pyplot(fig)
 
-# Hitung statistik PM2.5 untuk Weekday dan Weekend
-pm25_weekday = data_filtered[data_filtered["weekend"] == "Weekday"]["PM2.5"].median()
-pm25_weekend = data_filtered[data_filtered["weekend"] == "Weekend"]["PM2.5"].median()
+# Analisis Statistik untuk Interpretasi
+pm25_weekday = data_filtered[data_filtered["weekend"] == "Weekday"]["PM2.5"].dropna()
+pm25_weekend = data_filtered[data_filtered["weekend"] == "Weekend"]["PM2.5"].dropna()
 
-# Cek faktor cuaca yang paling berpengaruh dari korelasi
-correlation_matrix = data_filtered[["PM2.5", "TEMP", "PRES", "WSPM", "RAIN"]].corr()
-most_correlated_factor = correlation_matrix["PM2.5"].drop("PM2.5").idxmax()
-most_negatively_correlated_factor = correlation_matrix["PM2.5"].drop("PM2.5").idxmin()
+median_weekday = pm25_weekday.median()
+median_weekend = pm25_weekend.median()
 
-# Pastikan faktor cuaca yang dipilih adalah numerik
-data_filtered[most_correlated_factor] = pd.to_numeric(data_filtered[most_correlated_factor], errors="coerce")
-data_filtered[most_negatively_correlated_factor] = pd.to_numeric(data_filtered[most_negatively_correlated_factor], errors="coerce")
+iqr_weekday = pm25_weekday.quantile(0.75) - pm25_weekday.quantile(0.25)
+iqr_weekend = pm25_weekend.quantile(0.75) - pm25_weekend.quantile(0.25)
 
-# Pastikan kolom weekend sesuai format yang diharapkan
-data_filtered["weekend"] = data_filtered["weekend"].astype(str).str.strip().str.capitalize()
+# Menentukan Interpretasi
+interpretation = ""
+if median_weekday > median_weekend:
+    interpretation = (
+        "Rata-rata polusi PM2.5 lebih tinggi pada hari kerja dibandingkan akhir pekan. "
+        "Hal ini dapat disebabkan oleh aktivitas industri dan transportasi yang lebih banyak pada weekday, "
+        "serta kondisi cuaca seperti suhu dan kecepatan angin yang mungkin kurang mendukung dispersi polutan."
+    )
+else:
+    interpretation = (
+        "Rata-rata polusi PM2.5 lebih tinggi pada akhir pekan dibandingkan hari kerja. "
+        "Kemungkinan disebabkan oleh peningkatan aktivitas sosial dan pariwisata, "
+        "serta faktor cuaca seperti tekanan udara atau kelembaban yang dapat mempengaruhi akumulasi polutan di atmosfer."
+    )
 
-# Hitung mean setelah memastikan data numerik
-weather_mean_weekday = data_filtered[data_filtered["weekend"] == "Weekday"][most_correlated_factor].mean()
-weather_mean_weekend = data_filtered[data_filtered["weekend"] == "Weekend"][most_correlated_factor].mean()
 
-weather_mean_neg_weekday = data_filtered[data_filtered["weekend"] == "Weekday"][most_negatively_correlated_factor].mean()
-weather_mean_neg_weekend = data_filtered[data_filtered["weekend"] == "Weekend"][most_negatively_correlated_factor].mean()
-
-# Interpretasi berdasarkan korelasi dan boxplot
-interpretation_boxplot = (
-    f"Median PM2.5 pada hari kerja (Weekday) adalah {pm25_weekday:.2f}, "
-    f"sedangkan pada akhir pekan (Weekend) adalah {pm25_weekend:.2f}. "
-    "Berdasarkan korelasi, faktor cuaca yang paling berpengaruh terhadap PM2.5 adalah:\n"
-    f"✅ {most_correlated_factor} dengan korelasi {correlation_matrix.loc['PM2.5', most_correlated_factor]:.2f}.\n"
-    f"✅ {most_negatively_correlated_factor} dengan korelasi {correlation_matrix.loc['PM2.5', most_negatively_correlated_factor]:.2f}.\n\n"
-)
-
-interpretation_boxplot += (
-    f"Rata-rata {most_correlated_factor} pada Weekday adalah {weather_mean_weekday:.2f}, "
-    f"sedangkan pada Weekend adalah {weather_mean_weekend:.2f}. "
-    f"Rata-rata {most_negatively_correlated_factor} pada Weekday adalah {weather_mean_neg_weekday:.2f}, "
-    f"sedangkan pada Weekend adalah {weather_mean_neg_weekend:.2f}. "
-    "Hasil ini menunjukkan bahwa perubahan faktor cuaca ini kemungkinan berkontribusi terhadap perbedaan kadar polusi udara antara Weekday dan Weekend."
-)
-
-st.write("**Interpretasi**")
-st.write(interpretation_boxplot)
+st.write(f"**Interpretasi:** {interpretation}")
+st.write(f"**Median PM2.5 Weekday:** {median_weekday:.2f}")
+st.write(f"**Median PM2.5 Weekend:** {median_weekend:.2f}")
+st.write(f"**IQR Weekday:** {iqr_weekday:.2f}")
+st.write(f"**IQR Weekend:** {iqr_weekend:.2f}")
 
 # Visualisasi Korelasi PM₂.₅ dengan Faktor Cuaca
 st.subheader("Korelasi PM₂.₅ dengan Faktor Cuaca")
