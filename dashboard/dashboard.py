@@ -96,7 +96,14 @@ correlation_matrix = data_filtered[["PM2.5", "TEMP", "PRES", "WSPM", "RAIN"]].co
 most_correlated_factor = correlation_matrix["PM2.5"].drop("PM2.5").idxmax()
 most_negatively_correlated_factor = correlation_matrix["PM2.5"].drop("PM2.5").idxmin()
 
-# Ambil data rata-rata faktor cuaca pada weekday dan weekend
+# Pastikan faktor cuaca yang dipilih adalah numerik
+data_filtered[most_correlated_factor] = pd.to_numeric(data_filtered[most_correlated_factor], errors="coerce")
+data_filtered[most_negatively_correlated_factor] = pd.to_numeric(data_filtered[most_negatively_correlated_factor], errors="coerce")
+
+# Pastikan kolom weekend sesuai format yang diharapkan
+data_filtered["weekend"] = data_filtered["weekend"].astype(str).str.strip().str.capitalize()
+
+# Hitung mean setelah memastikan data numerik
 weather_mean_weekday = data_filtered[data_filtered["weekend"] == "Weekday"][most_correlated_factor].mean()
 weather_mean_weekend = data_filtered[data_filtered["weekend"] == "Weekend"][most_correlated_factor].mean()
 
