@@ -148,16 +148,23 @@ highest_value = correlation_pm25.max()
 lowest_corr = correlation_pm25.idxmin()
 lowest_value = correlation_pm25.min()
 
-# Menentukan Interpretasi
+# Mapping nama variabel ke maknanya
+weather_mapping = {
+    "TEMP": "suhu",
+    "PRES": "tekanan udara",
+    "WSPM": "kecepatan angin",
+    "RAIN": "curah hujan"
+}
+
+# Menentukan interpretasi dengan menggunakan makna variabel
 interpretation_corr = (
-    f"Korelasi tertinggi antara PM2.5 dan {highest_corr} (r={highest_value:.2f}) "
+    f"Korelasi tertinggi antara PM2.5 dan {weather_mapping[highest_corr]} (r={highest_value:.2f}) "
     f"menunjukkan bahwa faktor ini memiliki dampak paling besar terhadap polusi udara."
 )
 interpretation_corr += (
-    f" Sementara itu, korelasi terendah adalah dengan {lowest_corr} (r={lowest_value:.2f}), "
+    f" Sementara itu, korelasi terendah adalah dengan {weather_mapping[lowest_corr]} (r={lowest_value:.2f}), "
     "menunjukkan bahwa faktor ini memiliki pengaruh yang kecil terhadap tingkat PM2.5."
 )
 
 st.write("**Interpretasi**")
 st.write(interpretation_corr)
-
